@@ -537,7 +537,7 @@ class BinaryAI(object):
                 for func in funcs
             ]
 
-    def get_func_match(self, sha256: str, offset: int) -> List[MatchedFunction]:
+    def get_func_match(self, sha256: str, offset: int, topk: int = 1) -> List[MatchedFunction]:
         """Match functions about the given function identified
         by its offset address.
 
@@ -549,7 +549,7 @@ class BinaryAI(object):
             the contains score and pseudocode. The List is sorted by
             score from high to low
         """
-        f = self._client.function_match(sha256, offset).file
+        f = self._client.function_match(sha256, offset, topk).file
         if not f:
             raise FileNotExistError("File not exists")
         decompileResult = f.decompile_result
@@ -565,6 +565,40 @@ class BinaryAI(object):
             )
             matched_func_list.append(matched_func)
         return matched_func_list
+
+    def get_funcs_match(self, sha256: str) -> List[Function]:
+        """top-1 match for all functions of this file.
+        Returns:
+            List: List of match results.
+        """
+        f = self._client.functions_match(sha256).file
+        if not f:
+            raise FileNotExistError("File not exists")
+        decompileResult = f.decompile_result
+        funcs = None if not decompileResult else decompileResult.functions
+        if not funcs:
+            return []
+
+        func_list = []
+        for f_match in funcs:
+            func = Function(
+                name=f_match.name,
+                offset=int(f_match.offset),
+                pseudocode=(None if not f_match.pseudo_code else f_match.pseudo_code.code)
+            )
+            matched_func_list = []
+            for match in f_match.match:
+                matched_func = MatchedFunction(
+                    score=match.score,
+                    code=None,
+                    name=(None if not match.function else match.function.function_name),
+                    url=(None if not match.function else match.function.function_url),
+                    algorithm=match.algorithm.name,
+                )
+                matched_func_list.append(matched_func)
+            func.match = matched_func_list
+            func_list.append(func)
+        return func_list
 
     def get_khash_info(self, sha256: str) -> Optional[tuple[bytes, str]]:
         """Return the KHash of this file. See website for detailed introduction on KHash.
@@ -604,3 +638,15 @@ class BinaryAI(object):
         if not m.file.decompile_result:
             return None
         return m.file.decompile_result.malware_probability
+
+    def get_malware_family(self, sha256: str) -> Optional[List]:
+        """Return the malware family of this file.
+
+        This is a experimental feature. This might be changed without noticed.
+        """
+        m = self._client.file_malware_family(sha256)
+        if not m.file:
+            return None
+        if not m.file.malware_genetic_analysis_result:
+            return None
+        return m.file.malware_genetic_analysis_result

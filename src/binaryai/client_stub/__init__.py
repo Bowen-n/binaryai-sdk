@@ -66,6 +66,12 @@ from .file_k_hash import (
     FileKHashFileDecompileResultKHashInfo,
     FileKHashFileDecompileResultKHashInfoHash,
 )
+from .file_malware_family import (
+    FileMalwareFamily,
+    FileMalwareFamilyFile,
+    FileMalwareFamilyFileMalwareGeneticAnalysisResult,
+    FileMalwareFamilyFileMalwareGeneticAnalysisResultFamilyInfo,
+)
 from .file_malware_probability import (
     FileMalwareProbability,
     FileMalwareProbabilityFile,
@@ -103,6 +109,15 @@ from .functions_info import (
     FunctionsInfoFileDecompileResultFunctions,
     FunctionsInfoFileDecompileResultFunctionsEmbedding,
     FunctionsInfoFileDecompileResultFunctionsPseudoCode,
+)
+from .functions_match import (
+    FunctionsMatch,
+    FunctionsMatchFile,
+    FunctionsMatchFileDecompileResult,
+    FunctionsMatchFileDecompileResultFunctions,
+    FunctionsMatchFileDecompileResultFunctionsMatch,
+    FunctionsMatchFileDecompileResultFunctionsMatchFunction,
+    FunctionsMatchFileDecompileResultFunctionsPseudoCode,
 )
 from .input_types import (
     BindiffMatchInput,
@@ -197,6 +212,10 @@ __all__ = [
     "FileKHashFileDecompileResult",
     "FileKHashFileDecompileResultKHashInfo",
     "FileKHashFileDecompileResultKHashInfoHash",
+    "FileMalwareFamily",
+    "FileMalwareFamilyFile",
+    "FileMalwareFamilyFileMalwareGeneticAnalysisResult",
+    "FileMalwareFamilyFileMalwareGeneticAnalysisResultFamilyInfo",
     "FileMalwareProbability",
     "FileMalwareProbabilityFile",
     "FileMalwareProbabilityFileAnalyzeStatus",
@@ -228,6 +247,13 @@ __all__ = [
     "FunctionsInfoFileDecompileResultFunctions",
     "FunctionsInfoFileDecompileResultFunctionsEmbedding",
     "FunctionsInfoFileDecompileResultFunctionsPseudoCode",
+    "FunctionsMatch",
+    "FunctionsMatchFile",
+    "FunctionsMatchFileDecompileResult",
+    "FunctionsMatchFileDecompileResultFunctions",
+    "FunctionsMatchFileDecompileResultFunctionsMatch",
+    "FunctionsMatchFileDecompileResultFunctionsMatchFunction",
+    "FunctionsMatchFileDecompileResultFunctionsPseudoCode",
     "GraphQLClientError",
     "GraphQLClientGraphQLError",
     "GraphQLClientGraphQLMultiError",

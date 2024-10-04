@@ -13,6 +13,7 @@ from .create_file import CreateFile
 from .cve_name import CVEName
 from .download_link import DownloadLink
 from .file_k_hash import FileKHash
+from .file_malware_family import FileMalwareFamily
 from .file_malware_probability import FileMalwareProbability
 from .file_size import FileSize
 from .filename import Filename
@@ -20,6 +21,7 @@ from .function_info import FunctionInfo
 from .function_list import FunctionList
 from .function_match import FunctionMatch
 from .functions_info import FunctionsInfo
+from .functions_match import FunctionsMatch
 from .input_types import CreateFileInput, CreateUploadTicketInput, ReanalyzeInput
 from .license import License
 from .license_short_name import LicenseShortName
@@ -412,14 +414,16 @@ class Client(BaseClient):
         data = self.get_data(response)
         return FunctionsInfo.model_validate(data)
 
-    def function_match(self, sha_256: str, offset: Any, **kwargs: Any) -> FunctionMatch:
+    def function_match(
+        self, sha_256: str, offset: Any, top_k: int, **kwargs: Any
+    ) -> FunctionMatch:
         query = gql(
             """
-            query FunctionMatch($sha256: String!, $offset: BigInt!) {
+            query FunctionMatch($sha256: String!, $offset: BigInt!, $topK: Int!) {
               file: fileByHash(input: {sha256: $sha256}) {
                 decompileResult {
                   function(offset: $offset) {
-                    match(topK: 10) {
+                    match(topK: $topK) {
                       score
                       function {
                         code
@@ -431,12 +435,49 @@ class Client(BaseClient):
             }
             """
         )
-        variables: Dict[str, object] = {"sha256": sha_256, "offset": offset}
+        variables: Dict[str, object] = {
+            "sha256": sha_256,
+            "offset": offset,
+            "topK": top_k,
+        }
         response = self.execute(
             query=query, operation_name="FunctionMatch", variables=variables, **kwargs
         )
         data = self.get_data(response)
         return FunctionMatch.model_validate(data)
+
+    def functions_match(self, sha_256: str, **kwargs: Any) -> FunctionsMatch:
+        query = gql(
+            """
+            query FunctionsMatch($sha256: String!) {
+              file: fileByHash(input: {sha256: $sha256}) {
+                decompileResult {
+                  functions {
+                    offset
+                    name
+                    pseudoCode {
+                      code
+                    }
+                    match(topK: 1) {
+                      score
+                      function {
+                        functionName
+                        functionURL
+                      }
+                      algorithm
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: Dict[str, object] = {"sha256": sha_256}
+        response = self.execute(
+            query=query, operation_name="FunctionsMatch", variables=variables, **kwargs
+        )
+        data = self.get_data(response)
+        return FunctionsMatch.model_validate(data)
 
     def file_k_hash(self, sha_256: str, **kwargs: Any) -> FileKHash:
         query = gql(
@@ -488,6 +529,32 @@ class Client(BaseClient):
         )
         data = self.get_data(response)
         return FileMalwareProbability.model_validate(data)
+
+    def file_malware_family(self, sha_256: str, **kwargs: Any) -> FileMalwareFamily:
+        query = gql(
+            """
+            query FileMalwareFamily($sha256: String!) {
+              file: fileByHash(input: {sha256: $sha256}) {
+                malwareGeneticAnalysisResult {
+                  score
+                  familyInfo {
+                    name
+                    tag
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: Dict[str, object] = {"sha256": sha_256}
+        response = self.execute(
+            query=query,
+            operation_name="FileMalwareFamily",
+            variables=variables,
+            **kwargs
+        )
+        data = self.get_data(response)
+        return FileMalwareFamily.model_validate(data)
 
     def compressed_file(self, sha_256: str, **kwargs: Any) -> CompressedFile:
         query = gql(

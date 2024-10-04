@@ -198,15 +198,37 @@ query FunctionsInfo(
     }
 }
 
-query FunctionMatch($sha256: String!, $offset: BigInt!) {
+query FunctionMatch($sha256: String!, $offset: BigInt!, $topK: Int!) {
     file: fileByHash(input: { sha256: $sha256 }) {
         decompileResult {
             function(offset: $offset) {
-                match(topK: 10) {
+                match(topK: $topK) {
                     score
                     function {
                         code
                     }
+                }
+            }
+        }
+    }
+}
+
+query FunctionsMatch($sha256: String!) {
+    file: fileByHash(input: { sha256: $sha256 }) {
+        decompileResult {
+            functions {
+                offset
+                name
+                pseudoCode {
+                    code
+                }
+                match(topK: 1) {
+                    score
+                    function {
+                        functionName
+                        functionURL
+                    }
+                    algorithm
                 }
             }
         }
@@ -233,6 +255,18 @@ query FileMalwareProbability($sha256: String!) {
         }
         analyzeStatus(analyzer: SmartBeat) {
             status
+        }
+    }
+}
+
+query FileMalwareFamily($sha256: String!) {
+    file: fileByHash(input: { sha256: $sha256 }) {
+        malwareGeneticAnalysisResult {
+            score
+            familyInfo {
+                name
+                tag
+            }
         }
     }
 }
